@@ -67,6 +67,7 @@ void lexicalAnalyzer(string expression)
             }
         }
         count++;
+        
     }
 }
 
