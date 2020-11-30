@@ -1,21 +1,81 @@
-#include <algorithm>
+//Anthony Phillips and Trevor Bender
+//CSCI 330: Calculator
+//Dr. Killian
+//December 6th, 2020
+
+#include <iomanip>
 #include <iostream>
 #include <cmath>
-#include <iomanip>
 #include <string>
-#include <regex>
+#include <algorithm>
 
-using std::cout;
-using std::endl;
 using std::string;
+using std::cout;
+using std::cin;
+using std::endl;
 
-int main() {
+/********** FUNCTION DEFINITIONS **********/
 
-    string input = "1 + 2";
-    string output = std::regex_replace(input, std::regex("[^0-9]*([0-9]+).*"), string("$1"));
+void Calculator();
 
-    cout << input << endl;
-    cout << output << endl;
+void lexicalAnalyzer(string expression);
 
-    return 0;
+void Parser();
+
+void Evaluator();
+
+/********** MAIN **********/
+
+int main()
+{
+    Calculator();
+}
+
+/********** FUNCTION IMPLEMENTATIONS **********/
+
+void Calculator()
+{
+    string expression;
+    cout << "Please enter an expression: ";
+    cin >> expression;
+    lexicalAnalyzer(expression);
+    Parser();
+    Evaluator();
+}
+
+void lexicalAnalyzer(string expression)
+{
+    int count = 0;
+    const string number = "NUMBER(";
+    const string paren = ")";
+    expression.erase(remove(expression.begin(), expression.end(), ' '), expression.end());
+    int length = expression.length();
+    expression[length];
+    string lexemes[length];
+
+    while(count < expression.size())
+    {
+        string operators[9] = {"+", "-", "*", "/", "^", "(", ")", "pi", "e"};
+        string lexOp[9] = { "PLUS", "MINUS", "TIMES", "DIVIDES", "POWER", "LPAREN", "RPAREN", "PI", "E"};
+        for(int j = 0; j < 9; j++)
+        {
+            if(operators[j] == std::to_string(count))
+            {
+                lexemes[count] = lexOp[j];
+                break;
+                cout << lexemes[count] << endl;
+            }
+        }
+        count++;
+    }
+}
+
+void Parser()
+{
+
+}
+
+void Evaluator()
+{
+
 }
