@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <bits/stdc++.h>
 #include <vector>
+#include <regex>
 
 using std::vector;
 using std::string;
@@ -50,8 +51,8 @@ void Calculator()
     cout << expression << endl;
 
     lexicalAnalyzer(expression);
-    Parser();
-    Evaluator();
+    // Parser();
+    // Evaluator();
 }
 
 void lexicalAnalyzer(string expression)
@@ -63,12 +64,16 @@ void lexicalAnalyzer(string expression)
     int length = expression.length();
     string lexemes[length];
     vector<string> lex;
+    const std::regex numSearch("[0-9]");
 
     string operators[7] = {"+", "-", "*", "/", "^", "(", ")"};
     string lexOp[9] = {"PLUS", "MINUS", "TIMES", "DIVIDES", "POWER", "LPAREN", "RPAREN", "PI", "E"};
 
 
     for(int i = 0; i < expression.length(); i++) {
+
+        // cout << std::regex_match()
+
         for(int k = 0; k < 7; k++) {
             // Does not trigger until final loop?
             if(operators[k] == expression.substr(i, 1)) {
@@ -89,14 +94,21 @@ void lexicalAnalyzer(string expression)
         }
     }
 
-
-    deleteElement(lexemes, sizeof(lexemes)/sizeof(lexemes[0]), "");
+    // Remove all empty array elements
+    int popCount = 0;
+    for(auto i : lexemes) {
+        popCount += deleteElement(lexemes, sizeof(lexemes)/sizeof(lexemes[0]), "");
+    }
+    
 
     for(auto i : lexemes) {
         lex.push_back(i);
     }
 
-    lex.pop_back();
+    // Pop back vector until correct...
+    for(int i = 0; i < popCount; i++) {
+        lex.pop_back();
+    }
 
     for(auto i : lex) cout << i << " ";
     cout << endl;
@@ -124,8 +136,10 @@ int deleteElement(string arr[], int n, string x) {
         n-=1;
         for(int j = i; j < n; j++) 
             arr[j] = arr[j+1];
+
+        return 1;
     }
-    return n;
+    return 0;
 }
 
 
