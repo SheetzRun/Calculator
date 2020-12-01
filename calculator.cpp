@@ -57,49 +57,72 @@ void Calculator()
 
 void lexicalAnalyzer(string expression)
 {
-
     int count = 0;
     const string number = "NUMBER(";
     const string paren = ")";
     int length = expression.length();
     string lexemes[length];
     vector<string> lex;
-    const std::regex numSearch("[0-9]");
+    const std::regex numSearch("^[0-9]*[.]?[0-9]*$");
+    const std::regex blankSearch("^.{0}$");
+    string lexTemp = "";
 
     string operators[7] = {"+", "-", "*", "/", "^", "(", ")"};
     string lexOp[9] = {"PLUS", "MINUS", "TIMES", "DIVIDES", "POWER", "LPAREN", "RPAREN", "PI", "E"};
 
 
+    /*
+        FIX WHEN FIRST EXPRESSION IS A NUMBER
+        36 * 28.2 ---> NUMBER(36)
+
+        EXPECTED
+        NUMBER(36) TIMES NUMBER(28.2)
+    */
+
+
+
     for(int i = 0; i < expression.length(); i++) {
-
-        // cout << std::regex_match()
-
+        // Loop for operators
         for(int k = 0; k < 7; k++) {
-            // Does not trigger until final loop?
             if(operators[k] == expression.substr(i, 1)) {
-                lexemes[i] = lexOp[k];
+                lexTemp = lexOp[k];
                 break;
             }
         }
-
+        // Loop for PI and E constants
         for(int k = 0; k < 3; k++) {
             if(expression.substr(i, 2) == "pi") {
-                lexemes[i] = "PI";
+                lexTemp = "PI";
                 break;
             }
             if(expression.substr(i, 1) == "e") {
-                lexemes[i] = "E";
+                lexTemp = "E";
                 break;
             }
         }
+        // Loop for numbers
+        int count = i;
+        while(std::regex_match(expression.substr(count, 1), numSearch) && count < expression.length()) {
+            lexTemp += expression.substr(count, 1);
+            count++;
+        }
+        // Add formatting to any number
+        if(!std::regex_match(lexTemp, blankSearch) && std::regex_match(lexTemp, numSearch)) lexTemp = number + lexTemp + paren;
+
+        lexemes[i] = lexTemp;
+        // Reset lexTemp
+        lexTemp = "";
+        // Jump i to value of count
+        i = count;
     }
+
 
     // Remove all empty array elements
     int popCount = 0;
     for(auto i : lexemes) {
-        popCount += deleteElement(lexemes, sizeof(lexemes)/sizeof(lexemes[0]), "");
+        if(i == "") popCount++;
+        deleteElement(lexemes, sizeof(lexemes)/sizeof(lexemes[0]), "");
     }
-    
 
     for(auto i : lexemes) {
         lex.push_back(i);
@@ -110,7 +133,7 @@ void lexicalAnalyzer(string expression)
         lex.pop_back();
     }
 
-    for(auto i : lex) cout << i << " ";
+    for(auto i : lex) cout << "[" << i << "]";
     cout << endl;
 }
 
@@ -136,7 +159,6 @@ int deleteElement(string arr[], int n, string x) {
         n-=1;
         for(int j = i; j < n; j++) 
             arr[j] = arr[j+1];
-
         return 1;
     }
     return 0;

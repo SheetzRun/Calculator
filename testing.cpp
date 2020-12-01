@@ -7,7 +7,9 @@
 #include <string>
 #include <cmath>
 #include <iomanip>
+#include <vector>
 
+using std::vector;
 using std::cout;
 using std::endl;
 using std::string;
@@ -85,7 +87,24 @@ int main() {
     //     printf("%d ", constants[i]);
     // }
 
+
+    string lex[] = {"PI", "PLUS", "", "43.2"};
+    vector<string> test;
     
+    int x = 0;
+    for(auto i : lex) {
+        if(i == "") break;
+        x++;
+    }
+    cout << x << endl;
+    
+    for(auto i : lex) test.push_back(i);
+
+    for(auto i : test) cout << i << endl;
+    cout << endl;
+    test.erase(test.begin()+x);
+
+    for(auto i : test) cout << i << endl;
 
     return 0;
 }
