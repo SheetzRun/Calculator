@@ -21,7 +21,7 @@ using std::cout;
 using std::cin;
 using std::endl;
 
-
+// Lexeme token enum
 enum token {
     PLUS,       // 0
     MINUS,      // 1
@@ -34,10 +34,38 @@ enum token {
     PI,         // 8
     E           // 9
 };
-
- struct lexeme {
+// Lexeme Structure
+struct lexeme {
     token lex;
     double value;
+};
+
+// struct NumberNode {
+//     double value;
+// };
+
+// struct ExpressionNode {
+//     // LHS
+//     // RHS
+//     token lex;
+// };
+
+struct Node {
+    using NodePtr = Node*;
+
+    NodePtr LHS;
+    NodePtr RHS;
+    token lex;
+};
+
+struct NumberNode {
+    double value;
+};
+
+struct ExpressionNode {
+    Node l;
+    Node r;
+    token lex;
 };
 
 /********** FUNCTION DEFINITIONS **********/
@@ -61,25 +89,19 @@ int main()
 
 void Calculator()
 {
-    // Get input expression from user
-    // cout << "Please enter an expression: ";
-    
-    vector<lexeme> test = lexicalAnalyzer();
-
-    for(auto i = 0; i < test.size(); i++) {
-        cout << test.at(i).lex << " ";
-    }
-    // Parser();
+    // Holds the lexemes and values of expression
+    vector<lexeme> lexi = lexicalAnalyzer();
+    Parser();
     // Evaluator();
 }
 
 vector<lexeme> lexicalAnalyzer()
 {
     // char expr[1024];
-
     lexeme tokens[1024];
-
     char b[1024];
+    // Get input expression from user
+    cout << "Please enter an expression: ";
     scanf("%[a-z0-9+-*/()^ ]s", b);
 
     int t = 0;
@@ -92,12 +114,14 @@ vector<lexeme> lexicalAnalyzer()
             // cout << "b[i+1]: " << b[i+1] << endl;
             if(b[i+1]=='i') {
                 tokens[t].lex = PI;
+                tokens[t].value = 3.14159265358979;
                 ++t;
                 ++i;
             }
         }
         else if(b[i]=='e') {
             tokens[t].lex = E;
+            tokens[t].value = 2.71828182845904;
             ++t;
         }
         else if(std::isdigit(b[i])) {
@@ -175,13 +199,12 @@ vector<lexeme> lexicalAnalyzer()
                 cout << "ERROR";
                 break;
         }
-
         cout << " ";
     }
     cout << endl;
 
+    // Add values to vector to be returned
     vector<lexeme> lex;
-
     for(int i = 0; i < t; i++) {
         lex.push_back(tokens[i]);
     }
@@ -189,9 +212,16 @@ vector<lexeme> lexicalAnalyzer()
     return lex;
 }
 
+/*
+ * Addition       : + : Left  : 0
+ * Subtraction    : - : Left  : 0
+ * Multiplication : * : Left  : 1
+ * Division       : / : Left  : 1
+ * Exponentiation : ^ : Right : 2
+ */
 void Parser()
 {
-
+    
 }
 
 void Evaluator()
