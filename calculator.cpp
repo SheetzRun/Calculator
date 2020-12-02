@@ -70,6 +70,26 @@ void lexicalAnalyzer(string expression)
     string operators[7] = {"+", "-", "*", "/", "^", "(", ")"};
     string lexOp[9] = {"PLUS", "MINUS", "TIMES", "DIVIDES", "POWER", "LPAREN", "RPAREN", "PI", "E"};
 
+    enum token {
+        PLUS,
+        MINUS,
+        TIMES, 
+        DIVIDES,
+        POWER,
+        LPAREN,
+        RPAREN,
+        NUMBER,
+        PI,
+        E
+    };
+
+    char expr[1024];
+
+    struct lexeme {
+        enum token tok;
+        double value;
+    };
+
 
     /*
         FIX WHEN FIRST EXPRESSION IS A NUMBER

@@ -1,5 +1,6 @@
 #include <cctype>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <algorithm>
@@ -11,6 +12,7 @@
 
 using std::vector;
 using std::cout;
+using std::cin;
 using std::endl;
 using std::string;
 
@@ -88,23 +90,64 @@ int main() {
     // }
 
 
-    string lex[] = {"PI", "PLUS", "", "43.2"};
-    vector<string> test;
-    
-    int x = 0;
-    for(auto i : lex) {
-        if(i == "") break;
-        x++;
+    enum token {
+        PLUS,
+        MINUS,
+        TIMES, 
+        DIVIDES,
+        POWER,
+        LPAREN,
+        RPAREN,
+        NUMBER,
+        PI,
+        E
+    };
+
+    char expr[1024];
+
+    struct lexeme {
+        enum token tok;
+        double value;
+    };
+
+    lexeme tokens[1024];
+
+    string b[1024];
+    scanf("%[a-z0-9]s", b);
+
+
+    cout << strlen(b) << endl;
+
+    int t = 0;
+    for(int i = 0; i < strlen(b); i++) {
+        cout << "LOOP" << endl;
+        if(std::isblank(b[i])) {
+            cout << "SPACE\n";
+            continue;
+        }
+        else if(std::isalpha(b[i])) {
+
+        }
+        else if(std::isdigit(b[i])) {
+            char* end;
+            char* begin = b + i;
+            double val;
+            // Converts string to double
+            val = strtod(begin, &end);
+            i = (end - b) - 1;
+            tokens[t].tok = NUMBER;
+            tokens[t].value = val;
+            ++t;
+        }
     }
-    cout << x << endl;
+
     
-    for(auto i : lex) test.push_back(i);
-
-    for(auto i : test) cout << i << endl;
+    for(int i = 0; i < 10; i++) {
+        cout << tokens[i].value << " ";
+    }
     cout << endl;
-    test.erase(test.begin()+x);
 
-    for(auto i : test) cout << i << endl;
+    // for(auto i : tokens) cout << i.value << endl;
 
     return 0;
 }
