@@ -3,14 +3,17 @@
 //Dr. Killian
 //December 6th, 2020
 
-#include <iomanip>
+#include <cctype>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
-#include <cmath>
-#include <string>
 #include <algorithm>
-#include <bits/stdc++.h>
+#include <math.h>
+#include <string>
+#include <cmath>
+#include <iomanip>
 #include <vector>
-#include <regex>
 
 using std::vector;
 using std::string;
@@ -18,35 +21,34 @@ using std::cout;
 using std::cin;
 using std::endl;
 
+
+enum token {
+    PLUS,       // 0
+    MINUS,      // 1
+    TIMES,      // 2
+    DIVIDES,    // 3
+    POWER,      // 4
+    LPAREN,     // 5
+    RPAREN,     // 6
+    NUMBER,     // 7
+    PI,         // 8
+    E           // 9
+};
+
+ struct lexeme {
+    token lex;
+    double value;
+};
+
 /********** FUNCTION DEFINITIONS **********/
 
 void Calculator();
 
-void lexicalAnalyzer();
+vector<lexeme> lexicalAnalyzer();
 
 void Parser();
 
 void Evaluator();
-
-
-// Lexeme token enum
-enum token {
-    PLUS,
-    MINUS,
-    TIMES, 
-    DIVIDES,
-    POWER,
-    LPAREN,
-    RPAREN,
-    NUMBER,
-    PI,
-    E
-};
-// Lexeme structure
-struct lexeme {
-    enum token lex;
-    double value;
-};
 
 /********** MAIN **********/
 
@@ -60,79 +62,84 @@ int main()
 void Calculator()
 {
     // Get input expression from user
-    // string expression;
     // cout << "Please enter an expression: ";
-    // std::getline(cin, expression);
-    lexicalAnalyzer();
+    
+    vector<lexeme> test = lexicalAnalyzer();
+
+    for(auto i = 0; i < test.size(); i++) {
+        cout << test.at(i).lex << " ";
+    }
     // Parser();
     // Evaluator();
 }
 
-void lexicalAnalyzer()
+vector<lexeme> lexicalAnalyzer()
 {
-    char expr[1024];
-    lexeme tokens[1024];
-    // Read input into char array expr using format of regex
-    // cout << "Please enter an expression: ";
-    scanf("%[a-z0-9+-*/()^ ]s", expr);
+    // char expr[1024];
 
-    int count = 0;
-    for(int i = 0; i < strlen(expr); i++) {
-        if(std::isblank(expr[i])) {
+    lexeme tokens[1024];
+
+    char b[1024];
+    scanf("%[a-z0-9+-*/()^ ]s", b);
+
+    int t = 0;
+    for(int i = 0; i < strlen(b); i++) {
+        if(std::isblank(b[i])) {
             // Skip loop if is blank
             continue;
         }
-        else if(expr[i]=='p') {
-            if(expr[i+1]=='i') {
-                tokens[count].lex = PI;
-                ++count;
+        else if(b[i]=='p') {
+            // cout << "b[i+1]: " << b[i+1] << endl;
+            if(b[i+1]=='i') {
+                tokens[t].lex = PI;
+                ++t;
                 ++i;
             }
         }
-        else if(expr[i]=='e') {
-            tokens[count].lex = E;
-            ++count;
+        else if(b[i]=='e') {
+            tokens[t].lex = E;
+            ++t;
         }
-        else if(std::isdigit(expr[i])) {
+        else if(std::isdigit(b[i])) {
             char* end;
-            char* begin = expr + i;
+            char* begin = b + i;
             double val;
             // Converts string to double
             val = strtod(begin, &end);
-            i = (end - expr) - 1;
-            tokens[count].lex = NUMBER;
-            tokens[count].value = val;
-            ++count;
+            i = (end - b) - 1;
+            tokens[t].lex = NUMBER;
+            tokens[t].value = val;
+            ++t;
         }
         else {
-            switch(expr[i]) {
+            switch(b[i]) {
             case '+': 
-                tokens[count].lex = PLUS;
+                tokens[t].lex = PLUS;
                 break;
             case '-': 
-                tokens[count].lex = MINUS;
+                tokens[t].lex = MINUS;
                 break;
             case '*': 
-                tokens[count].lex = TIMES;
+                tokens[t].lex = TIMES;
                 break;
             case '/': 
-                tokens[count].lex = DIVIDES;
+                tokens[t].lex = DIVIDES;
                 break;
             case '^': 
-                tokens[count].lex = POWER;
+                tokens[t].lex = POWER;
                 break;
             case ')': 
-                tokens[count].lex = RPAREN;
+                tokens[t].lex = RPAREN;
                 break;
             case '(': 
-                tokens[count].lex = LPAREN;
+                tokens[t].lex = LPAREN;
                 break;
             }
-            ++count;
+            ++t;
         }
     }
     
-    for(int i = 0; i < count; i++) {
+    for(int i = 0; i < t; i++) {
         switch(tokens[i].lex) {
             case PLUS: 
                 cout << "PLUS";
@@ -172,6 +179,14 @@ void lexicalAnalyzer()
         cout << " ";
     }
     cout << endl;
+
+    vector<lexeme> lex;
+
+    for(int i = 0; i < t; i++) {
+        lex.push_back(tokens[i]);
+    }
+
+    return lex;
 }
 
 void Parser()
