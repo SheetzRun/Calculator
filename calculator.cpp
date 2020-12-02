@@ -68,7 +68,6 @@ void lexicalAnalyzer(string expression)
     string lexTemp = "";
 
     string operators[7] = {"+", "-", "*", "/", "^", "(", ")"};
-    string lexOp[9] = {"PLUS", "MINUS", "TIMES", "DIVIDES", "POWER", "LPAREN", "RPAREN", "PI", "E"};
 
     enum token {
         PLUS,
