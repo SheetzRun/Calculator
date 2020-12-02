@@ -40,16 +40,7 @@ struct lexeme {
     double value;
 };
 
-// struct NumberNode {
-//     double value;
-// };
-
-// struct ExpressionNode {
-//     // LHS
-//     // RHS
-//     token lex;
-// };
-
+// Term
 struct Node {
     using NodePtr = Node*;
 
@@ -57,14 +48,31 @@ struct Node {
     NodePtr RHS;
     token lex;
 };
-
+// NumberNode
 struct NumberNode {
-    double value;
-};
+    NumberNode(double value) 
+    : data(value) 
+    {
+        // Initialize data in
+        //   the member initialization list.
+        // The body of this constructor should be empty.
+    }
 
+    double data;
+};
+// ExpressionNode
 struct ExpressionNode {
-    Node l;
-    Node r;
+    ExpressionNode(Node l, token op, Node r) 
+    : lhs(l)
+    , lex(op)
+    , rhs(r)
+    {
+        // Initialize lhs, lex and rhs in
+        //   the member initialization list.
+        // The body of this constructor should be empty.
+    }
+    Node lhs;
+    Node rhs;
     token lex;
 };
 
@@ -74,7 +82,11 @@ void Calculator();
 
 vector<lexeme> lexicalAnalyzer();
 
-void Parser();
+void Parser(vector<lexeme> lex);
+
+Node* term(token tok);
+
+Node* expr(int prev_precendence, vector<lexeme> lex);
 
 void Evaluator();
 
@@ -91,7 +103,7 @@ void Calculator()
 {
     // Holds the lexemes and values of expression
     vector<lexeme> lexi = lexicalAnalyzer();
-    Parser();
+    Parser(lexi);
     // Evaluator();
 }
 
@@ -219,9 +231,47 @@ vector<lexeme> lexicalAnalyzer()
  * Division       : / : Left  : 1
  * Exponentiation : ^ : Right : 2
  */
-void Parser()
+void Parser(vector<lexeme> lex)
 {
-    
+    expr(-1, lex);
+}
+
+Node* term(lexeme tok) {
+    if(tok.lex == NUMBER) {
+        // return NumberNode(tok.value);
+    }
+    else if(tok.lex == PI) {
+        // return NumberNode(3.14159...);
+    }
+    else if(tok.lex == E) {
+        // return NumberNode(2.71828...);
+    }
+    else if(tok.lex == LPAREN) {
+        // node <- expr()
+        // assert(nextLexeme() is RPAREN)
+        // return node;
+    }
+    else {
+        // failure - expected number but got something else
+    }
+
+    return nullptr;
+}
+
+Node* expr(int prev_precendence, vector<lexeme> lex) {
+    // lhs <- term()
+    while(true) {
+        // lexeme op <- nextLexeme() // Ensure that it's an operator
+        int curr_precendence; // <- precendence(op);
+        if(op.lex==PLUS || op.lex==MINUS) curr_precendence = 0;
+        else if(op.lex==TIMES || op.lex==DIVIDES) curr_precendence = 1;
+        else if(op.lex==POWER) curr_precendence = 2;
+
+        if(curr_precendence < prev_precendence) break;
+
+
+        // lsh = ExpressionNode(lhs, op, rhs);
+    }
 }
 
 void Evaluator()
