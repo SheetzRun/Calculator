@@ -106,55 +106,33 @@ int main() {
     char expr[1024];
 
     struct lexeme {
-        token tok;
+        token lex;
         double value;
     };
 
     lexeme tokens[1024];
 
     char b[1024];
-    scanf("%[a-z0-9\\+\\-\\*\\/\\(\\)\\^ ]s", b);
+    scanf("%[a-z0-9+-*/()^ ]s", b);
 
     cout << strlen(b) << endl;
 
     int t = 0;
     for(int i = 0; i < strlen(b); i++) {
-        cout << "i loop: " << i << endl;
         if(std::isblank(b[i])) {
             // Skip loop if is blank
             continue;
         }
-        // else if(std::isalpha(b[i])) {
-        //     switch(b[i]) {
-        //         case 'p':
-        //             if(b[i+1]=='i') tokens[t].tok = PI;
-        //             i++;
-        //             ++t;
-        //             break;
-        //         case 'i':
-        //             break;
-        //         case 'e':
-        //             tokens[t].tok = E;
-        //             ++t;
-        //             break;
-        //         default:
-        //             cout << "Invalid input." << endl;
-        //             break;
-        //     }
-        // }
         else if(b[i]=='p') {
             cout << "b[i+1]: " << b[i+1] << endl;
             if(b[i+1]=='i') {
-                tokens[t].tok = PI;
+                tokens[t].lex = PI;
                 ++t;
-                cout << "i: " << i << "; ";
                 ++i;
-
-                cout << i << endl;
             }
         }
         else if(b[i]=='e') {
-            tokens[t].tok = E;
+            tokens[t].lex = E;
             ++t;
         }
         else if(std::isdigit(b[i])) {
@@ -164,42 +142,40 @@ int main() {
             // Converts string to double
             val = strtod(begin, &end);
             i = (end - b) - 1;
-            tokens[t].tok = NUMBER;
+            tokens[t].lex = NUMBER;
             tokens[t].value = val;
             ++t;
         }
         else {
             switch(b[i]) {
             case '+': 
-                tokens[t].tok = PLUS;
+                tokens[t].lex = PLUS;
                 break;
             case '-': 
-                tokens[t].tok = MINUS;
+                tokens[t].lex = MINUS;
                 break;
             case '*': 
-                tokens[t].tok = TIMES;
+                tokens[t].lex = TIMES;
                 break;
             case '/': 
-                tokens[t].tok = DIVIDES;
+                tokens[t].lex = DIVIDES;
                 break;
             case '^': 
-                tokens[t].tok = POWER;
+                tokens[t].lex = POWER;
                 break;
             case ')': 
-                tokens[t].tok = RPAREN;
+                tokens[t].lex = RPAREN;
                 break;
             case '(': 
-                tokens[t].tok = LPAREN;
+                tokens[t].lex = LPAREN;
                 break;
             }
             ++t;
         }
     }
-
-    cout << "t: " << t << endl;
     
     for(int i = 0; i < t; i++) {
-        switch(tokens[i].tok) {
+        switch(tokens[i].lex) {
             case PLUS: 
                 cout << "PLUS";
                 break;
