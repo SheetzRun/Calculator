@@ -114,7 +114,7 @@ vector<lexeme> lexicalAnalyzer()
     char b[1024];
     // Get input expression from user
     cout << "Please enter an expression: ";
-    scanf("%[a-z0-9+-*/()^ ]s", b);
+    scanf("%[a-z0-9+-*/()^. ]s", b);
 
     int t = 0;
     for(int i = 0; i < strlen(b); i++) {
@@ -233,7 +233,7 @@ vector<lexeme> lexicalAnalyzer()
  */
 void Parser(vector<lexeme> lex)
 {
-    expr(-1, lex);
+    // expr(-1, lex);
 }
 
 Node* term(lexeme tok) {
@@ -263,15 +263,16 @@ Node* expr(int prev_precendence, vector<lexeme> lex) {
     while(true) {
         // lexeme op <- nextLexeme() // Ensure that it's an operator
         int curr_precendence; // <- precendence(op);
-        if(op.lex==PLUS || op.lex==MINUS) curr_precendence = 0;
-        else if(op.lex==TIMES || op.lex==DIVIDES) curr_precendence = 1;
-        else if(op.lex==POWER) curr_precendence = 2;
+        // if(op.lex==PLUS || op.lex==MINUS) curr_precendence = 0;
+        // else if(op.lex==TIMES || op.lex==DIVIDES) curr_precendence = 1;
+        // else if(op.lex==POWER) curr_precendence = 2;
 
         if(curr_precendence < prev_precendence) break;
 
 
         // lsh = ExpressionNode(lhs, op, rhs);
     }
+    return nullptr;
 }
 
 void Evaluator()

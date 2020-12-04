@@ -18,7 +18,6 @@ using std::string;
 
 
 int main() {
-
     enum token {
         PLUS,
         MINUS,
