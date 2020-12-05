@@ -41,7 +41,7 @@ struct lexeme {
     double value;
 };
 
-struct lexeme tokens[10000];
+lexeme tokens[10000];
 
 enum type {
     Expr,
@@ -52,15 +52,15 @@ struct node {
     enum type type;
     union {
         struct {
-            struct node* lhs;
-            struct node* rhs;
-            struct lexeme op;
+            node* lhs;
+            node* rhs;
+            lexeme op;
         }expression;
         double val;
     };
 };
 
-struct node* root;
+node* root;
 int i = 0;
 
 /********** FUNCTION DEFINITIONS **********/
@@ -72,6 +72,8 @@ void lexicalAnalyzer();
 void Parser();
 
 int precedence(lexeme tok);
+
+string association(token op);
 
 bool op(int i);
 
@@ -244,6 +246,27 @@ int precedence(lexeme tok){
     return precedence;
 }
 
+string association(token op) {
+    string left_to_right;
+    switch(op) {
+        case PLUS:
+        case MINUS:
+        case TIMES:
+        case DIVIDES:
+        case NUMBER:
+        case PI:
+        case E:
+            left_to_right = "left";
+            break;
+        case POWER:
+            left_to_right = "right";
+            break;
+        default:
+            break;
+    }
+    return left_to_right;
+}
+
 bool op(int i)
 {
     switch(tokens[i].lex)
@@ -296,6 +319,7 @@ struct node* term() {
 struct node* expr(int prev_precendence) {
     struct node* lhs = root->expression.lhs;
     struct node* rhs = root->expression.rhs;
+    struct node* n = new node;
     lhs = term();
     while(true) {
         bool oper = op(i);
@@ -303,21 +327,22 @@ struct node* expr(int prev_precendence) {
         {
             int curr_precedence = precedence(tokens[i]);
             if(curr_precedence < prev_precendence) break;
-            if(tokens[i].lex == LPAREN || tokens[i].lex == RPAREN)
+            if(association(tokens[i].lex) == "left")
                 rhs = expr(curr_precedence + 1);
-            else 
+            else
                 rhs = expr(curr_precedence);
-            lhs = expression(root->expression.lhs, root->expression.op, root->expression.rhs);
+            // lhs = ExpressionNode(root->expression.lhs, root->expression.op, root->expression.rhs);
+            // lhs = ExpressionNode(root->expression.lhs, tokens[i].lex, root->expression.rhs);
+            n->expression.lhs = lhs;
+            n->expression.rhs = rhs;
+            n->expression.op = tokens[i];
         }
-        // lsh = ExpressionNode(lhs, op, rhs);
     }
     i++;
-    return 0;
+    return lhs;
 }
 
 void Evaluator()
 {
 
 }
-
-
