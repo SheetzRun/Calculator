@@ -14,6 +14,7 @@
 #include <cmath>
 #include <iomanip>
 #include <vector>
+#include <stdlib.h>
 
 using std::vector;
 using std::string;
@@ -40,40 +41,21 @@ struct lexeme {
     double value;
 };
 
-// Term
+enum node_type {
+    Expression,
+    Number
+};
+
 struct Node {
-    using NodePtr = Node*;
-
-    NodePtr LHS;
-    NodePtr RHS;
-    token lex;
-};
-// NumberNode
-struct NumberNode {
-    NumberNode(double value) 
-    : data(value) 
-    {
-        // Initialize data in
-        //   the member initialization list.
-        // The body of this constructor should be empty.
-    }
-
-    double data;
-};
-// ExpressionNode
-struct ExpressionNode {
-    ExpressionNode(Node l, token op, Node r) 
-    : lhs(l)
-    , lex(op)
-    , rhs(r)
-    {
-        // Initialize lhs, lex and rhs in
-        //   the member initialization list.
-        // The body of this constructor should be empty.
-    }
-    Node lhs;
-    Node rhs;
-    token lex;
+    node_type type;
+    union {
+        struct {
+            Node* lhs;
+            Node* rhs;
+            lexeme op;
+        } expr;
+        double num;
+    };
 };
 
 /********** FUNCTION DEFINITIONS **********/
@@ -83,6 +65,8 @@ void Calculator();
 vector<lexeme> lexicalAnalyzer();
 
 void Parser(vector<lexeme> lex);
+
+static Node* tree(Node* n);
 
 Node* term(token tok);
 
@@ -234,6 +218,27 @@ vector<lexeme> lexicalAnalyzer()
 void Parser(vector<lexeme> lex)
 {
     // expr(-1, lex);
+}
+
+static Node* tree(Node* n) {
+    n = (Node*)malloc(sizeof(n));
+
+    if(n==nullptr) return nullptr;
+
+    n->type = Expression;
+    switch(n->expr.op.lex) {
+        case DIVIDES:
+        case TIMES:
+        case PLUS:
+        case MINUS:
+            n->expr.lhs = tree(n);
+            n->expr.rhs = tree(n);
+            n->num = 0;
+            break;
+        default:
+            n->expr.lhs = n->expr.rhs = nullptr;
+    }
+    return n;
 }
 
 Node* term(lexeme tok) {
