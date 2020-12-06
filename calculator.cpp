@@ -67,19 +67,63 @@ enum type {
     Num
 };
 
-struct node {
-    enum type type;
-    union {
-        struct {
-            struct node* lhs;
-            struct node* rhs;
-            struct lexeme op;
-        } expression;
-        double val;
-    };
+// struct node {
+
+//     enum type type;
+//     union {
+//         struct {
+//             struct node* lhs;
+//             struct node* rhs;
+//             struct lexeme op;
+//         } expression;
+//         double val;
+//     };
+// };
+
+struct expression {
+    struct node* lhs;
+    struct node* rhs;
+    struct lexeme op;
+    // Default constructor
+    expression()
+    : lhs(nullptr)
+    , rhs(nullptr)
+    , op()
+    {}
+
+    expression(node* l, node* r, lexeme o)
+    : lhs(l)
+    , rhs(r)
+    , op(o)
+    {}
 };
 
-// struct node* root;
+class node {
+    public:
+    enum type type;
+    double val;
+    struct expression expr;
+    // Default constructor
+    node()
+    : type()
+    , val(0)
+    , expr()
+    {}
+    // Just a value (NumberNode)
+    node(enum type t, double v)
+    : type(t)
+    , val(v)
+    , expr()
+    {}
+    // ExpressionNode
+    node(enum type t, double v, struct expression e)
+    : type(t)
+    , val(v)
+    , expr(e)
+    {}
+};
+
+struct node* root;
 int t=0;
 auto i = tokens.begin();
 
@@ -119,8 +163,10 @@ void Calculator()
     // Parser();
     // Evaluator();
 
+    root = expr(-1);
     for(auto it = tokens.begin(); it != tokens.end(); it++) {
-        Evaluator(expr(-1));
+        Evaluator(root);
+        root = expr(-1);
     }
 }
 
@@ -305,91 +351,88 @@ bool op(lexeme i)
     case E:
         return false;
     }
+    return false;
 }
 
-struct node* term() {
+struct node* term(lexeme tok) {
     struct node* n;
-    if(i->lex == NUMBER) {
-        n->val = i->value;
+    if(tok.lex == NUMBER) {
+        n->val = tok.value;
         n->type = Num;
         return n;
     }
-    else if(i->lex == PI) {
+    else if(tok.lex == PI) {
         n->val = 3.14159265358979;
         n->type = Num;
         return n;
     }
-    else if(i->lex == E) {
+    else if(tok.lex == E) {
         n->val = 2.71828182845904;
         n->type = Num;
         return n;
     }
-    else if(i->lex == LPAREN) {
+    else if(tok.lex == LPAREN) {
         n = expr(-1);
-        if(i->lex == RPAREN)
+        if(tok.lex == RPAREN)
             return n;
     }
     else {
         // failure - expected number but got something else
     }
-
     return nullptr;
 }
 
 struct node* expr(int prev_precendence) {
-    struct node* n;
+    struct node* n = new node();
     struct node* lhs = term(*tokens.begin());
-    struct node* rhs = nullptr;
-
-    cout << "outside while" << endl;
+    struct node* rhs = new node();
 
     while(tokens.size() > 0) {
-        cout << "inside while" << endl;
-
-        auto oper = tokens.begin();
-        tokens.pop_front();
-
+        // auto oper = tokens.erase(tokens.begin());
+        // tokens.pop_front();
+        auto oper = tokens.erase(tokens.begin());
         // Check if it's an operator
         if(op(*oper))
         {
             int curr_precedence = precedence(*oper);
-            if(curr_precedence < prev_precendence) break;
+            if(curr_precedence < prev_precendence) { 
+                // tokens.insert(oper, *oper);
+                break;
+            }
+            cout << oper->lex << endl;
             if(association(oper->lex) == "left")
-                rhs = expr(curr_precedence + 1);
+                rhs = expr(curr_precedence+1);
             else
                 rhs = expr(curr_precedence);
 
-
-            cout << "assign this shit" << endl;
-
-            n->expression.lhs = lhs;
-            cout << "lhs: " << lhs << endl;
-            n->expression.rhs = rhs;
-            cout << "rhs: " << rhs << endl;
-            n->expression.op = oper->lex;
+            n->expr.lhs = lhs;
+            cout << "lhs: " << lhs->val << endl;
+            n->expr.rhs = rhs;
+            cout << "rhs: " << rhs->val << endl;
+            n->expr.op = oper->lex;
             cout << "op: " << oper->lex << endl;
-       }
+        }
         oper++;
     }
     cout << endl;
-
-    // cout << "++++++++++++++++++++++++++++++++++++" << endl;
-    // cout << &(n->expression.lhs->type) << ", ";
-    // cout << &(n->expression.rhs->type) << ", ";
-    // cout << &(n->expression.op) << endl;
-    // cout << "++++++++++++++++++++++++++++++++++++" << endl;
 
     return n;
 }
 
 double Evaluator(struct node* node)
 {
+
+    cout << "EVALUATE THIS, BITCH" << endl;
     if(node->type == Expr) {
-        double lhs = Evaluator(node->expression.lhs);
-        double rhs = Evaluator(node->expression.rhs);
+        cout << "eval this if" << endl;
+        double lhs = Evaluator(node->expr.lhs);
+        cout << "eval lhs: " << lhs << endl;
+        double rhs = Evaluator(node->expr.rhs);
+        cout << "eval rhs" << endl;
 
         // return lhs (node->expression.op.lex) rhs;
-        switch(node->expression.op.lex) {
+        cout << "switchblade" << endl;
+        switch(node->expr.op.lex) {
             case PLUS:
                 return lhs + rhs;
             case MINUS:
@@ -403,8 +446,10 @@ double Evaluator(struct node* node)
             default:
                 return 0;
         }
+        cout << "cut" << endl;
     }
     else {
+        cout << "NUMBERNODE" << endl;
         return node->val; // It's a NumberNode
     }
 }
