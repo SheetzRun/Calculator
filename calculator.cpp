@@ -15,14 +15,15 @@
 #include <cmath>
 #include <iomanip>
 #include <vector>
-
-#include "List.hpp"
+#include <list>
+#include <iterator>
 
 using std::vector;
 using std::string;
 using std::cout;
 using std::cin;
 using std::endl;
+
 
 // Lexeme token enum
 enum token {
@@ -41,9 +42,25 @@ enum token {
 struct lexeme {
     enum token lex;
     double value;
+
+    lexeme() 
+    : lex()
+    , value(0)
+    {}
+
+    lexeme(token tok)
+    : lex(tok)
+    , value(0)
+    {}
+
+    lexeme(token tok, double val) 
+    : lex(tok)
+    , value(val)
+    {}
 };
 
-struct lexeme tokens[10000];
+// struct lexeme tokens[10000];
+std::list<lexeme> tokens;
 
 enum type {
     Expr,
@@ -62,8 +79,9 @@ struct node {
     };
 };
 
-struct node* root;
-int i = 0, t = 0;
+// struct node* root;
+int t=0;
+auto i = tokens.begin();
 
 /********** FUNCTION DEFINITIONS **********/
 
@@ -79,15 +97,11 @@ string association(token op);
 
 bool op(int i);
 
-struct node* term();
+struct node* term(lexeme tok);
 
 struct node* expr(int prev_precendence);
 
-static struct node* makeTree(lexeme tok[]);
-
-void Evaluator();
-
-void printLexemes(lexeme lex);
+double Evaluator(struct node* node);
 
 /********** MAIN **********/
 
@@ -102,8 +116,12 @@ void Calculator()
 {
     // Holds the lexemes and values of expression
     lexicalAnalyzer();
-    Parser();
+    // Parser();
     // Evaluator();
+
+    for(auto it = tokens.begin(); it != tokens.end(); it++) {
+        Evaluator(expr(-1));
+    }
 }
 
 void lexicalAnalyzer()
@@ -119,17 +137,14 @@ void lexicalAnalyzer()
             continue;
         }
         else if(b[i]=='p') {
-            // cout << "b[i+1]: " << b[i+1] << endl;
             if(b[i+1]=='i') {
-                tokens[t].lex = PI;
-                tokens[t].value = 3.14159265358979;
+                tokens.push_back(lexeme(PI, 3.14159265358979));
                 ++t;
                 ++i;
             }
         }
         else if(b[i]=='e') {
-            tokens[t].lex = E;
-            tokens[t].value = 2.71828182845904;
+            tokens.push_back(lexeme(E, 2.71828182845904));
             ++t;
         }
         else if(std::isdigit(b[i])) {
@@ -139,40 +154,40 @@ void lexicalAnalyzer()
             // Converts string to double
             val = strtod(begin, &end);
             i = (end - b) - 1;
-            tokens[t].lex = NUMBER;
-            tokens[t].value = val;
+            tokens.push_back(lexeme(NUMBER, val));
             ++t;
         }
         else {
             switch(b[i]) {
             case '+': 
-                tokens[t].lex = PLUS;
+                tokens.push_back(lexeme(PLUS));
                 break;
             case '-': 
-                tokens[t].lex = MINUS;
+                tokens.push_back(lexeme(MINUS));
                 break;
             case '*': 
-                tokens[t].lex = TIMES;
+                tokens.push_back(lexeme(TIMES));
                 break;
             case '/': 
-                tokens[t].lex = DIVIDES;
+                tokens.push_back(lexeme(DIVIDES));
                 break;
             case '^': 
-                tokens[t].lex = POWER;
+                tokens.push_back(lexeme(POWER));
                 break;
             case ')': 
-                tokens[t].lex = RPAREN;
+                tokens.push_back(lexeme(RPAREN));
                 break;
             case '(': 
-                tokens[t].lex = LPAREN;
+                tokens.push_back(lexeme(LPAREN));
                 break;
             }
             ++t;
         }
     }
     
-    for(int i = 0; i < t; i++) {
-        switch(tokens[i].lex) {
+    for(auto k = tokens.begin(); k != tokens.end(); k++) {
+        
+        switch(k->lex) {
             case PLUS: 
                 cout << "PLUS";
                 break;
@@ -195,7 +210,7 @@ void lexicalAnalyzer()
                 cout << "LPAREN";
                 break;
             case NUMBER: 
-                cout << tokens[i].value;
+                cout << k->value;
                 break;
             case PI: 
                 cout << "PI";
@@ -221,7 +236,9 @@ void lexicalAnalyzer()
  */
 void Parser()
 {
-    makeTree(tokens);
+    // makeTree(tokens);
+    // Call expr to get node that is root of tree
+    // expr and term together should build the tree
 }
 
 int precedence(lexeme tok){
@@ -271,9 +288,9 @@ string association(token op) {
     return left_to_right;
 }
 
-bool op(int i)
+bool op(lexeme i)
 {
-    switch(tokens[i].lex)
+    switch(i.lex)
     {
     case PLUS:
     case MINUS:
@@ -291,25 +308,25 @@ bool op(int i)
 }
 
 struct node* term() {
-    struct node* n = new node;
-    if(tokens[i++].lex == NUMBER) {
-        n->val = tokens[i].value;
+    struct node* n;
+    if(i->lex == NUMBER) {
+        n->val = i->value;
         n->type = Num;
         return n;
     }
-    else if(tokens[i++].lex == PI) {
+    else if(i->lex == PI) {
         n->val = 3.14159265358979;
         n->type = Num;
         return n;
     }
-    else if(tokens[i++].lex == E) {
+    else if(i->lex == E) {
         n->val = 2.71828182845904;
         n->type = Num;
         return n;
     }
-    else if(tokens[i++].lex == LPAREN) {
+    else if(i->lex == LPAREN) {
         n = expr(-1);
-        if(tokens[i++].lex == RPAREN)
+        if(i->lex == RPAREN)
             return n;
     }
     else {
@@ -320,104 +337,77 @@ struct node* term() {
 }
 
 struct node* expr(int prev_precendence) {
-    // struct node* lhs = root->expression.lhs;
-    struct node* n = new node;
-    struct node* lhs = term();
+    struct node* n;
+    struct node* lhs = term(*tokens.begin());
     struct node* rhs = nullptr;
 
-    while(i < t) {
+    cout << "outside while" << endl;
+
+    while(tokens.size() > 0) {
+        cout << "inside while" << endl;
+
+        auto oper = tokens.begin();
+        tokens.pop_front();
+
         // Check if it's an operator
-        if(op(i))
+        if(op(*oper))
         {
-            int curr_precedence = precedence(tokens[i]);
+            int curr_precedence = precedence(*oper);
             if(curr_precedence < prev_precendence) break;
-            if(association(tokens[i].lex) == "left")
+            if(association(oper->lex) == "left")
                 rhs = expr(curr_precedence + 1);
             else
                 rhs = expr(curr_precedence);
 
+
+            cout << "assign this shit" << endl;
+
             n->expression.lhs = lhs;
+            cout << "lhs: " << lhs << endl;
             n->expression.rhs = rhs;
-            n->expression.op = tokens[i];
-
-            cout << n->expression.op.lex << endl;
+            cout << "rhs: " << rhs << endl;
+            n->expression.op = oper->lex;
+            cout << "op: " << oper->lex << endl;
        }
-        i++;
+        oper++;
     }
+    cout << endl;
 
-
-    cout << "++++++++++++++++++++++++++++++++++++" << endl;
-    cout << &(n->expression.lhs->type) << ", ";
-    cout << &(n->expression.rhs->type) << ", ";
-    cout << &(n->expression.op) << endl;
-    cout << "++++++++++++++++++++++++++++++++++++" << endl;
+    // cout << "++++++++++++++++++++++++++++++++++++" << endl;
+    // cout << &(n->expression.lhs->type) << ", ";
+    // cout << &(n->expression.rhs->type) << ", ";
+    // cout << &(n->expression.op) << endl;
+    // cout << "++++++++++++++++++++++++++++++++++++" << endl;
 
     return n;
 }
 
-static struct node* makeTree(lexeme tok[]) {
-    if(tok) {
-        // n->type = Expr;
-        switch(tok[0].lex) {
-            case DIVIDES:
-            case PLUS:
-            case TIMES:
-            case POWER:
-            case MINUS:
-                // n->expression.lhs = makeTree(tok);
-                // n->expression.rhs = makeTree(tok);
-                // n->val = 0;
-                break;
-            default:
-                // n->val = tokens[i].value;
-                // n->expression.lhs = n->expression.rhs = NULL;
-                break;
-        }
-        return expr(-1);
-    }
-    return NULL;
-}
-
-void Evaluator()
+double Evaluator(struct node* node)
 {
+    if(node->type == Expr) {
+        double lhs = Evaluator(node->expression.lhs);
+        double rhs = Evaluator(node->expression.rhs);
 
-}
-
-void printLexemes(lexeme lex) {
-    switch(lex.lex) {
-            case PLUS: 
-                cout << "PLUS";
-                break;
-            case MINUS: 
-                cout << "MINUS";
-                break;
-            case TIMES: 
-                cout << "TIMES";
-                break;
-            case DIVIDES: 
-                cout << "DIVIDES";
-                break;
-            case POWER: 
-                cout << "POWER";
-                break;
-            case RPAREN: 
-                cout << "RPAREN";
-                break;
-            case LPAREN: 
-                cout << "LPAREN";
-                break;
-            case NUMBER: 
-                cout << tokens[i].value;
-                break;
-            case PI: 
-                cout << "PI";
-                break;
-            case E: 
-                cout << "E";
-                break;
+        // return lhs (node->expression.op.lex) rhs;
+        switch(node->expression.op.lex) {
+            case PLUS:
+                return lhs + rhs;
+            case MINUS:
+                return lhs - rhs;
+            case TIMES:
+                return lhs * rhs;
+            case DIVIDES:
+                return lhs / rhs;
+            case POWER:
+                return pow(lhs, rhs);
             default:
-                cout << "ERROR";
-                break;
+                return 0;
         }
-        cout << endl;
+    }
+    else {
+        return node->val; // It's a NumberNode
+    }
 }
+
+// 1+2*3-8/(3-1) = 3
+
