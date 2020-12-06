@@ -3,6 +3,7 @@
 //Dr. Killian
 //December 6th, 2020
 
+#include <bits/c++config.h>
 #include <cctype>
 #include <cstdio>
 #include <cstdlib>
@@ -14,7 +15,6 @@
 #include <cmath>
 #include <iomanip>
 #include <vector>
-#include <stdlib.h>
 
 using std::vector;
 using std::string;
@@ -37,40 +37,49 @@ enum token {
 };
 // Lexeme Structure
 struct lexeme {
-    token lex;
+    enum token lex;
     double value;
 };
 
-enum node_type {
-    Expression,
-    Number
+lexeme tokens[10000];
+
+enum type {
+    Expr,
+    Num
 };
 
-struct Node {
-    node_type type;
+struct node {
+    enum type type;
     union {
         struct {
-            Node* lhs;
-            Node* rhs;
+            node* lhs;
+            node* rhs;
             lexeme op;
-        } expr;
-        double num;
+        }expression;
+        double val;
     };
 };
+
+node* root;
+int i = 0;
 
 /********** FUNCTION DEFINITIONS **********/
 
 void Calculator();
 
-vector<lexeme> lexicalAnalyzer();
+void lexicalAnalyzer();
 
-void Parser(vector<lexeme> lex);
+void Parser();
 
-static Node* tree(Node* n);
+int precedence(lexeme tok);
 
-Node* term(token tok);
+string association(token op);
 
-Node* expr(int prev_precendence, vector<lexeme> lex);
+bool op(int i);
+
+struct node* term();
+
+struct node* expr(int prev_precendence);
 
 void Evaluator();
 
@@ -86,15 +95,14 @@ int main()
 void Calculator()
 {
     // Holds the lexemes and values of expression
-    vector<lexeme> lexi = lexicalAnalyzer();
-    Parser(lexi);
+    lexicalAnalyzer();
+    Parser();
     // Evaluator();
 }
 
-vector<lexeme> lexicalAnalyzer()
+void lexicalAnalyzer()
 {
     // char expr[1024];
-    lexeme tokens[1024];
     char b[1024];
     // Get input expression from user
     cout << "Please enter an expression: ";
@@ -198,14 +206,6 @@ vector<lexeme> lexicalAnalyzer()
         cout << " ";
     }
     cout << endl;
-
-    // Add values to vector to be returned
-    vector<lexeme> lex;
-    for(int i = 0; i < t; i++) {
-        lex.push_back(tokens[i]);
-    }
-
-    return lex;
 }
 
 /*
@@ -215,46 +215,99 @@ vector<lexeme> lexicalAnalyzer()
  * Division       : / : Left  : 1
  * Exponentiation : ^ : Right : 2
  */
-void Parser(vector<lexeme> lex)
+void Parser()
 {
-    // expr(-1, lex);
+    expr(-1);
 }
 
-static Node* tree(Node* n) {
-    n = (Node*)malloc(sizeof(n));
+int precedence(lexeme tok){
+    int precedence;
+    switch (tok.lex) 
+    {
+    case PLUS:
+    case MINUS:
+        precedence = 0;
+        break;
+    case TIMES:
+    case DIVIDES:
+        precedence = 1;
+        break;
+    case POWER:
+        precedence = 2;
+        break;
+    case LPAREN:
+    case RPAREN:
+    case NUMBER:
+    case PI:
+    case E:
+        precedence = -1;
+        break;
+    }
+    return precedence;
+}
 
-    if(n==nullptr) return nullptr;
-
-    n->type = Expression;
-    switch(n->expr.op.lex) {
-        case DIVIDES:
-        case TIMES:
+string association(token op) {
+    string left_to_right;
+    switch(op) {
         case PLUS:
         case MINUS:
-            n->expr.lhs = tree(n);
-            n->expr.rhs = tree(n);
-            n->num = 0;
+        case TIMES:
+        case DIVIDES:
+        case NUMBER:
+        case PI:
+        case E:
+            left_to_right = "left";
+            break;
+        case POWER:
+            left_to_right = "right";
             break;
         default:
-            n->expr.lhs = n->expr.rhs = nullptr;
+            break;
     }
-    return n;
+    return left_to_right;
 }
 
-Node* term(lexeme tok) {
-    if(tok.lex == NUMBER) {
-        // return NumberNode(tok.value);
+bool op(int i)
+{
+    switch(tokens[i].lex)
+    {
+    case PLUS:
+    case MINUS:
+    case TIMES:
+    case DIVIDES:
+    case POWER:
+        return true;
+    case LPAREN:
+    case RPAREN:
+    case NUMBER:
+    case PI:
+    case E:
+        return false;
     }
-    else if(tok.lex == PI) {
-        // return NumberNode(3.14159...);
+}
+
+
+struct node* term() {
+    node* n = new node;
+    if(tokens[i++].lex == NUMBER) {
+        n->val = tokens[i].value;
+        n->type = Num;
+        return n;
     }
-    else if(tok.lex == E) {
-        // return NumberNode(2.71828...);
+    else if(tokens[i++].lex == PI) {
+        n->val = 3.14159265358979;
+        n->type = Num;
+        return n;
     }
-    else if(tok.lex == LPAREN) {
-        // node <- expr()
-        // assert(nextLexeme() is RPAREN)
-        // return node;
+    else if(tokens[i++].lex == E) {
+        n->val = 2.71828182845904;
+        n->type = Num;
+        return n;
+    }
+    else if(tokens[i++].lex == LPAREN) {
+        n = expr(-1);
+        if(tokens[i++].lex == RPAREN)
+            return n;
     }
     else {
         // failure - expected number but got something else
@@ -263,26 +316,33 @@ Node* term(lexeme tok) {
     return nullptr;
 }
 
-Node* expr(int prev_precendence, vector<lexeme> lex) {
-    // lhs <- term()
+struct node* expr(int prev_precendence) {
+    struct node* lhs = root->expression.lhs;
+    struct node* rhs = root->expression.rhs;
+    struct node* n = new node;
+    lhs = term();
     while(true) {
-        // lexeme op <- nextLexeme() // Ensure that it's an operator
-        int curr_precendence; // <- precendence(op);
-        // if(op.lex==PLUS || op.lex==MINUS) curr_precendence = 0;
-        // else if(op.lex==TIMES || op.lex==DIVIDES) curr_precendence = 1;
-        // else if(op.lex==POWER) curr_precendence = 2;
-
-        if(curr_precendence < prev_precendence) break;
-
-
-        // lsh = ExpressionNode(lhs, op, rhs);
+        bool oper = op(i);
+        if(oper)
+        {
+            int curr_precedence = precedence(tokens[i]);
+            if(curr_precedence < prev_precendence) break;
+            if(association(tokens[i].lex) == "left")
+                rhs = expr(curr_precedence + 1);
+            else
+                rhs = expr(curr_precedence);
+            // lhs = ExpressionNode(root->expression.lhs, root->expression.op, root->expression.rhs);
+            // lhs = ExpressionNode(root->expression.lhs, tokens[i].lex, root->expression.rhs);
+            n->expression.lhs = lhs;
+            n->expression.rhs = rhs;
+            n->expression.op = tokens[i];
+        }
     }
-    return nullptr;
+    i++;
+    return lhs;
 }
 
 void Evaluator()
 {
 
 }
-
-
