@@ -16,6 +16,8 @@
 #include <iomanip>
 #include <vector>
 
+#include "List.hpp"
+
 using std::vector;
 using std::string;
 using std::cout;
@@ -343,7 +345,7 @@ struct node* expr(int prev_precendence) {
         i++;
     }
 
-    
+
     cout << "++++++++++++++++++++++++++++++++++++" << endl;
     cout << &(n->expression.lhs->type) << ", ";
     cout << &(n->expression.rhs->type) << ", ";
@@ -354,8 +356,6 @@ struct node* expr(int prev_precendence) {
 }
 
 static struct node* makeTree(lexeme tok[]) {
-    //return null if not enough memory
-
     if(tok) {
         // n->type = Expr;
         switch(tok[0].lex) {
