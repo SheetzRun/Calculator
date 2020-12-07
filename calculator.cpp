@@ -80,50 +80,51 @@ enum type {
 //     };
 // };
 
-struct expression {
-    struct node* lhs;
-    struct node* rhs;
-    struct lexeme op;
-    // Default constructor
-    expression()
-    : lhs(nullptr)
-    , rhs(nullptr)
-    , op()
-    {}
+class expression {
+    public:
+        struct node* lhs;
+        struct node* rhs;
+        struct lexeme op;
+        // Default constructor
+        expression()
+        : lhs(nullptr)
+        , rhs(nullptr)
+        , op()
+        {}
 
-    expression(node* l, node* r, lexeme o)
-    : lhs(l)
-    , rhs(r)
-    , op(o)
-    {}
+        expression(node* l, node* r, lexeme o)
+        : lhs(l)
+        , rhs(r)
+        , op(o)
+        {}
 };
 
 class node {
     public:
-    enum type type;
-    double val;
-    struct expression expr;
-    // Default constructor
-    node()
-    : type()
-    , val(0)
-    , expr()
-    {}
-    // Just a value (NumberNode)
-    node(enum type t, double v)
-    : type(t)
-    , val(v)
-    , expr()
-    {}
-    // ExpressionNode
-    node(enum type t, double v, struct expression e)
-    : type(t)
-    , val(v)
-    , expr(e)
-    {}
+        enum type type;
+        double val;
+        expression expr;
+        // Default constructor
+        node()
+        : type()
+        , val(0)
+        , expr()
+        {}
+        // Just a value (NumberNode)
+        node(enum type t, double v)
+        : type(t)
+        , val(v)
+        , expr()
+        {}
+        // ExpressionNode
+        node(enum type t, double v, struct expression e)
+        : type(t)
+        , val(v)
+        , expr(e)
+        {}
 };
 
-struct node* root;
+struct node* root = new node();
 int t=0;
 auto i = tokens.begin();
 
@@ -164,10 +165,16 @@ void Calculator()
     // Evaluator();
 
     root = expr(-1);
+
+    cout << "Root Op: " << root->expr.op.lex << endl;
+    cout << "Root Left: " << root->expr.lhs->val << endl;
+    cout << "Root Right: " << root->expr.rhs->val << endl;
+
     for(auto it = tokens.begin(); it != tokens.end(); it++) {
         Evaluator(root);
-        root = expr(-1);
+        // root = expr(-1); 
     }
+    
 }
 
 void lexicalAnalyzer()
@@ -355,7 +362,7 @@ bool op(lexeme i)
 }
 
 struct node* term(lexeme tok) {
-    struct node* n;
+    struct node* n = new node();
     if(tok.lex == NUMBER) {
         n->val = tok.value;
         n->type = Num;
@@ -388,30 +395,41 @@ struct node* expr(int prev_precendence) {
     struct node* rhs = new node();
 
     while(tokens.size() > 0) {
-        // auto oper = tokens.erase(tokens.begin());
-        // tokens.pop_front();
-        auto oper = tokens.erase(tokens.begin());
-        // Check if it's an operator
-        if(op(*oper))
-        {
-            int curr_precedence = precedence(*oper);
-            if(curr_precedence < prev_precendence) { 
-                // tokens.insert(oper, *oper);
-                break;
-            }
-            cout << oper->lex << endl;
-            if(association(oper->lex) == "left")
-                rhs = expr(curr_precedence+1);
-            else
-                rhs = expr(curr_precedence);
+        auto oper = tokens.begin();
+        auto peek = oper;
 
-            n->expr.lhs = lhs;
-            cout << "lhs: " << lhs->val << endl;
-            n->expr.rhs = rhs;
-            cout << "rhs: " << rhs->val << endl;
-            n->expr.op = oper->lex;
-            cout << "op: " << oper->lex << endl;
+        oper = tokens.erase(tokens.begin());
+
+        // Peek operator
+        // if(oper->lex == PLUS || oper->lex == MINUS
+        // || oper->lex == TIMES || oper->lex == DIVIDES){}
+            // oper = tokens.erase(tokens.begin());
+        // Check if it's an operator
+        // if(op(*oper))
+        // {
+        int curr_precedence = precedence(*oper);
+        if(curr_precedence < prev_precendence) { 
+            tokens.insert(oper, *oper);
+            break;
         }
+        // Pop tokens
+        // oper = tokens.erase(tokens.begin());
+        if(association(oper->lex) == "left") 
+            rhs = expr(curr_precedence+1);
+        else
+            rhs = expr(curr_precedence);
+
+        n->expr.lhs = lhs;
+        cout << "lhs: " << lhs->val << endl;
+        n->expr.rhs = rhs;
+        cout << "rhs: " << rhs->val << endl;
+        n->expr.op = oper->lex;
+        cout << "op: " << oper->lex << endl;
+
+        // type value expression
+        // lhs = new node(n->type, oper->value, expression(lhs, rhs, oper->lex));
+        // }
+            
         oper++;
     }
     cout << endl;
